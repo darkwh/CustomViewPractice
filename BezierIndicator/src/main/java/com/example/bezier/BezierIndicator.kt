@@ -334,15 +334,15 @@ class BezierIndicator(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     private fun setPaths() {
         mBezierPath.reset()
-        val mConteroX = getControlX()
+        val mControlX = getControlX()
         val startX = getStartX()
         val startY = getStartY()
         val endX = getEndX()
         val endY = getEndY()
         mBezierPath.moveTo(startX, y - startY)
-        mBezierPath.quadTo(mConteroX, y, endX, y - endY)
+        mBezierPath.quadTo(mControlX, y, endX, y - endY)
         mBezierPath.lineTo(endX, y + endY)
-        mBezierPath.quadTo(mConteroX, y, startX, y + startY)
+        mBezierPath.quadTo(mControlX, y, startX, y + startY)
         mBezierPath.lineTo(startX, y - startY)
     }
 
