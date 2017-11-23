@@ -150,16 +150,17 @@ class BezierIndicator(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     }
 
     override fun onDraw(canvas: Canvas?) {
-        //画占位圆
+        //绘制占位圆
         (0 until mCount)
                 .map {
                     getPointX(it)
                 }
                 .forEach { canvas?.drawCircle(it, y, mUnselRadius, mUnSelectedPaint) }
-        //画选中圆
+        //绘制选中圆
         canvas?.drawCircle(getSelectedX(), y, mSelRadius, mSelectedPaint)
-        //画迁移圆
+        //绘制迁移圆
         canvas?.drawCircle(getTransX(), y, mTransCirRadius, mSelectedPaint)
+        //绘制闭合的贝塞尔曲线区域
         canvas?.drawPath(mBezierPath, mSelectedPaint)
     }
 
@@ -170,6 +171,9 @@ class BezierIndicator(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         mPosition = viewPager.currentItem
     }
 
+    /**
+     * 反射改变ViewPager的内置Scroller
+     */
     private fun setViewPagerScrollSpeed(viewPager: ViewPager) {
         try {
             val field = ViewPager::class.java.getDeclaredField("mScroller")
@@ -227,12 +231,7 @@ class BezierIndicator(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
      * 判断左右移动方向
      */
     private fun judgeLeftRight(position: Int, positionOffset: Float): Int {
-        return if (position + positionOffset - mPosition >= 0) {
-            moveRight
-        }
-        else {
-            moveLeft
-        }
+        return if (position + positionOffset - mPosition >= 0) moveRight else moveLeft
     }
 
     /**
