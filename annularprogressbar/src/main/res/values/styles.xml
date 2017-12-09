@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="annular">
+        <!--外环的宽度-->
+        <attr name="borderWidth" format="dimension"/>
+        <!--外环的颜色-->
+        <attr name="borderColor" format="color"/>
+        <!--内圆的颜色-->
+        <attr name="circleColor" format="color"/>
+        <!--进度条的颜色-->
+        <attr name="progressbarColor" format="color"/>
+        <!--进度条的宽度-->
+        <attr name="progressbarWidth" format="dimension"/>
+        <!--当前进度的文字大小-->
+        <attr name="progressTextSize" format="dimension"/>
+        <!--两个圆之间的间距-->
+        <attr name="space" format="dimension"/>
+        <!--两个圆之间的填充色-->
+        <attr name="fillColor" format="color"/>
+    </declare-styleable>
+
+</resources>

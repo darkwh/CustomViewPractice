@@ -17,8 +17,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".BezierIndicatorActivity">
-        </activity>
+        <activity android:name=".BezierIndicatorActivity"/>
+        <activity android:name=".AnnularPrpgressActivity"/>
     </application>
 
 </manifest>

@@ -19,7 +19,8 @@ import android.widget.Scroller
  * @date 2017/11/14
  * @description
  */
-class BezierIndicator(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : View(context, attrs, defStyleAttr), ViewPager.OnPageChangeListener {
+class BezierIndicator(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
+        View(context, attrs, defStyleAttr), ViewPager.OnPageChangeListener {
 
     /**
      * 滑动第一阶段
