@@ -1,1 +1,1 @@
-include ':app', ':BezierIndicator'
+include ':app', ':BezierIndicator', ':annularprogressbar'

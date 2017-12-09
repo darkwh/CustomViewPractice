@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">CustomView</string>
     <string name="bezier_indicator">贝塞尔指示器</string>
+    <string name="annularbar">环形进度条</string>
 </resources>

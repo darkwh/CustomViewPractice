@@ -12,12 +12,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout_main)
         btn_bezier_indicator.setOnClickListener(this)
+        btn_annular_progress_bar.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.btn_bezier_indicator -> {
                 startActivity<BezierIndicatorActivity>()
+            }
+            R.id.btn_annular_progress_bar -> {
+                startActivity<AnnularPrpgressActivity>()
             }
         }
     }
