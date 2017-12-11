@@ -14,10 +14,22 @@
         <attr name="progressbarWidth" format="dimension"/>
         <!--当前进度的文字大小-->
         <attr name="progressTextSize" format="dimension"/>
+        <!--当前进度的文字颜色-->
+        <attr name="progressTextColor" format="color"/>
+        <!--总进度的文字大小-->
+        <attr name="totalTextSize" format="dimension"/>
+        <!--总进度的文字颜色-->
+        <attr name="totalTextColor" format="color"/>
         <!--两个圆之间的间距-->
-        <attr name="space" format="dimension"/>
+        <attr name="fillWidth" format="dimension"/>
         <!--两个圆之间的填充色-->
         <attr name="fillColor" format="color"/>
+        <!--动画持续时间-->
+        <attr name="duration" format="integer"/>
+        <!--最大进度-->
+        <attr name="max" format="integer"/>
+        <!--当前进度-->
+        <attr name="progress" format="integer"/>
     </declare-styleable>
 
 </resources>
