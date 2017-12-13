@@ -86,11 +86,6 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
     private var borderRadius = 0f
 
     /**
-     * 进度条所在圆半径
-     */
-    private var progressRadius = 0f
-
-    /**
      * 填充环半径
      */
     private var fillRadius = 0f
@@ -172,8 +167,8 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
     init {
         //自定义属性的默认值都在此处修改
         val typedArray = context.obtainStyledAttributes(attrs, R.styleable.annular)
-        borderWidth = typedArray.getDimension(R.styleable.annular_borderWidth, 5f)
-        progressWidth = typedArray.getDimension(R.styleable.annular_progressbarWidth, 10f)
+        borderWidth = typedArray.getDimension(R.styleable.annular_borderWidth, 10f)
+        progressWidth = typedArray.getDimension(R.styleable.annular_progressbarWidth, 15f)
         progressTextSize = typedArray.getDimension(R.styleable.annular_progressTextSize, 18f)
         totalTextSize = typedArray.getDimension(R.styleable.annular_totalTextSize, 16f)
         borderColor = typedArray.getColor(R.styleable.annular_borderColor, 0xFF000000.toInt())
@@ -185,10 +180,27 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
         progressTextColor = typedArray.getColor(R.styleable.annular_progressTextColor,
                 0xFFFFFFFF.toInt())
         totalTextColor = typedArray.getColor(R.styleable.annular_totalTextColor, 0xFFFFFFFF.toInt())
-        fillWidth = typedArray.getDimension(R.styleable.annular_fillWidth, 20f)
+        fillWidth = typedArray.getDimension(R.styleable.annular_fillWidth, 100f)
         progress = typedArray.getInt(R.styleable.annular_progress, 0)
         max = typedArray.getInt(R.styleable.annular_max, 100)
         typedArray.recycle()
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val widthMode = MeasureSpec.getMode(widthMeasureSpec)
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
+        val height = MeasureSpec.getSize(heightMeasureSpec)
+        if (widthMode == MeasureSpec.AT_MOST) {
+            setMeasuredDimension(height, height)
+        }
+        if (heightMode == MeasureSpec.AT_MOST) {
+            setMeasuredDimension(width, width)
+        }
+        else {
+            val temp: Int = if (width > height) width else height
+            setMeasuredDimension(temp, temp)
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -198,7 +210,8 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
         canvas?.drawCircle(centerX, centerY, fillRadius, fillPaint)
         canvas?.drawArc(oval, -90f, angle, false, progressPaint)
         canvas?.drawText(progress.toString(),
-                centerX - (width - progressTextWidth - totalTextWidth) / 2, centerY, progressPaint)
+                centerX - (totalTextWidth - 2 * progressTextWidth) / 2,
+                centerY, progressTextPaint)
         canvas?.drawText("/" + max, centerX + progressTextWidth / 2, centerY, totalTextPaint)
     }
 
@@ -208,10 +221,10 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
     private fun calculateParams() {
         centerX = width.toFloat() / 2
         centerY = height.toFloat() / 2
+        //这里这么计算不相切?
         borderRadius = (width - borderWidth) / 2
-        progressRadius = (width - progressWidth) / 2
-        fillRadius = borderRadius - borderWidth / 2
-        circleRadius = fillRadius - fillWidth / 2
+        fillRadius = borderRadius - borderWidth
+        circleRadius = fillRadius - fillWidth
         oval.set(progressWidth / 2, progressWidth / 2,
                 width - progressWidth / 2, height - progressWidth / 2)
         angle = 360f * progress / max
@@ -245,6 +258,7 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
         //总进度
         totalTextPaint.color = totalTextColor
         totalTextPaint.textSize = totalTextSize
+        totalTextPaint.textAlign = Paint.Align.CENTER
     }
 
     /**
