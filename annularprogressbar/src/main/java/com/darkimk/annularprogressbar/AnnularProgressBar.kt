@@ -9,6 +9,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 
@@ -17,7 +18,7 @@ import android.view.animation.LinearInterpolator
  * @date 2017/12/9
  * @description 环形进度条控件
  */
-class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
+class AnnularProgressBar<T>(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
         View(context, attrs, defStyleAttr) {
 
     /**
@@ -224,8 +225,7 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
         }
         if (heightMode == MeasureSpec.AT_MOST) {
             setMeasuredDimension(width, width)
-        }
-        else {
+        } else {
             val temp: Int = if (width > height) width else height
             setMeasuredDimension(temp, temp)
         }
@@ -305,9 +305,10 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
     private fun animationStart() {
         if (isPlaying) {
             return
+        } else {
         }
         isPlaying = true
-        val anim = ValueAnimator.ofObject(AnnularEvaluator(max), 0, progress)
+        val anim = ValueAnimator.ofObject(AnnularEvaluator(progress, max), 0, progress)
         anim.duration = mDuration
         anim.interpolator = LinearInterpolator()
         anim.addUpdateListener({
@@ -346,10 +347,17 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
         animationStart()
     }
 
-    class AnnularEvaluator(val max: Int) : TypeEvaluator<Int> {
+    class AnnularEvaluator(val progress: Int, val max: Int) : TypeEvaluator<Int> {
 
         override fun evaluate(fraction: Float, startValue: Int?, endValue: Int?): Int {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            val critical = max.toFloat() / (2 * max - progress)
+            return if (fraction <= critical) {
+                Log.e("wh", "fraction：" + fraction)
+                Log.e("wh", "" + (fraction * max.toFloat() * 1f / critical).toInt())
+                (fraction * max.toFloat() * 1f / critical).toInt()
+            } else {
+                (max - (fraction - critical) * 1f / (max - progress).toFloat()).toInt()
+            }
         }
 
     }
