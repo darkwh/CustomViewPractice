@@ -1,11 +1,16 @@
 package com.darkimk.annularprogressbar
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.TypeEvaluator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.LinearInterpolator
 
 /**
  * @author DarkWH
@@ -76,6 +81,16 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
     private var progressTextSize = 0f
 
     /**
+     * 当前进度文字的baseLine
+     */
+    private var progressBaseLine = 0f
+
+    /**
+     * 总进度文字的baseLine
+     */
+    private var totalBaseLine = 0f
+
+    /**
      * 两圆之间的间距
      */
     private var fillWidth = 0f
@@ -108,37 +123,37 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
     /**
      * 动画持续时间
      */
-    private val mDuration = 0f
+    private var mDuration = 0L
 
     /**
      * 内圆画笔
      */
-    private val circlePaint by lazy { Paint() }
+    private val circlePaint by lazy { Paint(Paint.ANTI_ALIAS_FLAG) }
 
     /**
      * 外环画笔
      */
-    private val borderPaint by lazy { Paint() }
+    private val borderPaint by lazy { Paint(Paint.ANTI_ALIAS_FLAG) }
 
     /**
      * 进度条画笔
      */
-    private val progressPaint by lazy { Paint() }
+    private val progressPaint by lazy { Paint(Paint.ANTI_ALIAS_FLAG) }
 
     /**
      * 两圆之间的填充环画笔
      */
-    private val fillPaint by lazy { Paint() }
+    private val fillPaint by lazy { Paint(Paint.ANTI_ALIAS_FLAG) }
 
     /**
      * 当前进度的文字画笔
      */
-    private val progressTextPaint by lazy { Paint() }
+    private val progressTextPaint by lazy { Paint(Paint.ANTI_ALIAS_FLAG) }
 
     /**
      * 总进度的文字画笔
      */
-    private val totalTextPaint by lazy { Paint() }
+    private val totalTextPaint by lazy { Paint(Paint.ANTI_ALIAS_FLAG) }
 
     /**
      * 画圆弧需要的RectF对象
@@ -160,6 +175,16 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
      */
     private var totalTextWidth = 0f
 
+    /**
+     * 是否自动播放动画
+     */
+    private var isAutoAnim = false
+
+    /**
+     * 动画是否正在播放
+     */
+    private var isPlaying = false
+
     constructor(context: Context) : this(context, null)
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -168,7 +193,7 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
         //自定义属性的默认值都在此处修改
         val typedArray = context.obtainStyledAttributes(attrs, R.styleable.annular)
         borderWidth = typedArray.getDimension(R.styleable.annular_borderWidth, 10f)
-        progressWidth = typedArray.getDimension(R.styleable.annular_progressbarWidth, 15f)
+        progressWidth = typedArray.getDimension(R.styleable.annular_progressbarWidth, 20f)
         progressTextSize = typedArray.getDimension(R.styleable.annular_progressTextSize, 18f)
         totalTextSize = typedArray.getDimension(R.styleable.annular_totalTextSize, 16f)
         borderColor = typedArray.getColor(R.styleable.annular_borderColor, 0xFF000000.toInt())
@@ -180,10 +205,13 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
         progressTextColor = typedArray.getColor(R.styleable.annular_progressTextColor,
                 0xFFFFFFFF.toInt())
         totalTextColor = typedArray.getColor(R.styleable.annular_totalTextColor, 0xFFFFFFFF.toInt())
-        fillWidth = typedArray.getDimension(R.styleable.annular_fillWidth, 100f)
+        fillWidth = typedArray.getDimension(R.styleable.annular_fillWidth, 30f)
         progress = typedArray.getInt(R.styleable.annular_progress, 0)
         max = typedArray.getInt(R.styleable.annular_max, 100)
+        mDuration = typedArray.getInt(R.styleable.annular_duration, 2000).toLong()
+        isAutoAnim = typedArray.getBoolean(R.styleable.annular_autoAnim, true)
         typedArray.recycle()
+        if (isAutoAnim) animationStart()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -209,10 +237,10 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
         canvas?.drawCircle(centerX, centerY, borderRadius, borderPaint)
         canvas?.drawCircle(centerX, centerY, fillRadius, fillPaint)
         canvas?.drawArc(oval, -90f, angle, false, progressPaint)
-        canvas?.drawText(progress.toString(),
-                centerX - (totalTextWidth - 2 * progressTextWidth) / 2,
-                centerY, progressTextPaint)
-        canvas?.drawText("/" + max, centerX + progressTextWidth / 2, centerY, totalTextPaint)
+        canvas?.drawText(progress.toString(), centerX - totalTextWidth / 2,
+                centerY + progressBaseLine, progressTextPaint)
+        canvas?.drawText("/" + max, centerX + progressTextWidth / 2,
+                centerY + totalBaseLine, totalTextPaint)
     }
 
     /**
@@ -221,16 +249,14 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
     private fun calculateParams() {
         centerX = width.toFloat() / 2
         centerY = height.toFloat() / 2
-        //这里这么计算不相切?
-        borderRadius = (width - borderWidth) / 2
+        borderRadius = (width - progressWidth) / 2
         fillRadius = borderRadius - borderWidth
         circleRadius = fillRadius - fillWidth
         oval.set(progressWidth / 2, progressWidth / 2,
                 width - progressWidth / 2, height - progressWidth / 2)
         angle = 360f * progress / max
-        progressTextWidth = progressPaint.measureText(progress.toString())
-        totalTextWidth = totalTextPaint.measureText("/" + max)
         setPaints()
+        calculateBaseLine()
     }
 
     /**
@@ -262,17 +288,69 @@ class AnnularProgressBar(context: Context, attrs: AttributeSet?, defStyleAttr: I
     }
 
     /**
+     * 计算文字的baseline
+     */
+    private fun calculateBaseLine() {
+        progressTextWidth = progressTextPaint.measureText(progress.toString())
+        totalTextWidth = totalTextPaint.measureText("/" + max)
+        val progressTextHeight = progressTextPaint.descent() - progressTextPaint.ascent()
+        val totalTextHeight = totalTextPaint.descent() - totalTextPaint.ascent()
+        progressBaseLine = progressTextHeight / 2 - progressTextPaint.descent()
+        totalBaseLine = totalTextHeight / 2 - totalTextPaint.descent()
+    }
+
+    /**
+     * 开始动画
+     */
+    private fun animationStart() {
+        if (isPlaying) {
+            return
+        }
+        isPlaying = true
+        val anim = ValueAnimator.ofObject(AnnularEvaluator(max), 0, progress)
+        anim.duration = mDuration
+        anim.interpolator = LinearInterpolator()
+        anim.addUpdateListener({
+            val currentValue = it.animatedValue as Int
+            progress = currentValue
+            invalidate()
+        })
+        anim.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                isPlaying = false
+            }
+        })
+        anim.start()
+    }
+
+    /**
      * 设置进度
      */
-    fun setProgress() {
-
+    fun setProgress(progress: Int) {
+        this.progress = progress
+        invalidate()
     }
 
     /**
      * 设置进度并开始动画
      */
-    fun setProgressWithAnimation() {
-
+    fun setProgressWithAnimation(progress: Int) {
+        this.progress = progress
+        animationStart()
     }
 
+    /**
+     * 播放动画
+     */
+    fun playAnimation() {
+        animationStart()
+    }
+
+    class AnnularEvaluator(val max: Int) : TypeEvaluator<Int> {
+
+        override fun evaluate(fraction: Float, startValue: Int?, endValue: Int?): Int {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+    }
 }
