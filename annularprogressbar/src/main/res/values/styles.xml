@@ -30,6 +30,8 @@
         <attr name="max" format="integer"/>
         <!--当前进度-->
         <attr name="progress" format="integer"/>
+        <!--是否自动播放动画-->
+        <attr name="autoAnim" format="boolean"/>
     </declare-styleable>
 
 </resources>
