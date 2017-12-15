@@ -9,7 +9,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 
@@ -347,16 +346,15 @@ class AnnularProgressBar<T>(context: Context, attrs: AttributeSet?, defStyleAttr
         animationStart()
     }
 
-    class AnnularEvaluator(val progress: Int, val max: Int) : TypeEvaluator<Int> {
+    class AnnularEvaluator(private val progress: Int, private val max: Int) : TypeEvaluator<Int> {
 
         override fun evaluate(fraction: Float, startValue: Int?, endValue: Int?): Int {
-            val critical = max.toFloat() / (2 * max - progress)
+            val critical = max.toDouble() / (2 * max - progress)
             return if (fraction <= critical) {
-                Log.e("wh", "fraction：" + fraction)
-                Log.e("wh", "" + (fraction * max.toFloat() * 1f / critical).toInt())
-                (fraction * max.toFloat() * 1f / critical).toInt()
+                Math.ceil(fraction * max * 1f / critical).toInt()
             } else {
-                (max - (fraction - critical) * 1f / (max - progress).toFloat()).toInt()
+                val value = max - (max - progress) * (fraction - critical) * 1f / (1 - critical)
+                Math.ceil(value).toInt()
             }
         }
 
